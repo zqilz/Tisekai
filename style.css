@@ -2,45 +2,121 @@
 body {
     margin: 0;
     font-family: sans-serif;
-    background-color: #121212; /* Dark background for comfortable reading */
+    background-color: #121212;
     color: #f0f0f0;
 }
 
 /* The main container for the manhwa pages */
 #reader-container {
-    max-width: 800px; /* A comfortable reading width on desktops */
-    margin: 0 auto;   /* Center the container */
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-/* Styling for each manhwa image */
-.manhwa-image {
-    display: block;  /* Removes the small gap below images */
+/* The placeholder div that prevents layout shift (CLS) */
+.image-placeholder {
+    position: relative;
     width: 100%;
-    height: auto;
-    background-color: #2a2a2a; /* Placeholder color */
-    min-height: 500px; /* Give placeholders a default height to prevent a blank page */
-    transition: opacity 0.3s ease-in-out;
-    opacity: 1;
+    /* NEW: Use a CSS variable for a dynamic aspect ratio. */
+    /* The value is a fallback in case the variable isn't set. */
+    aspect-ratio: var(--aspect-ratio, 9 / 16); 
+    background-color: #2a2a2a;
+    overflow: hidden; /* Ensures nothing spills out */
 }
 
 /* When the 'lazy' class is present, it's a placeholder */
-.manhwa-image.lazy {
-    /* You could add a subtle loading animation here if you want */
+.image-placeholder.lazy {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulse {
-  0%, 100% {
-    background-color: #2a2a2a;
-  }
-  50% {
-    background-color: #383838;
-  }
+  0%, 100% { background-color: #2a2a2a; }
+  50% { background-color: #383838; }
 }
 
-/* Style for the image once it's loaded */
+/* Styling for each manhwa image */
+.manhwa-image {
+    /* The image will fill its placeholder parent */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover; /* NEW: ensure image covers the placeholder */
+    
+    /* Start transparent and fade in smoothly on load */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* Style for the image once it's fully decoded and ready */
 .manhwa-image.loaded {
-    min-height: 0; /* Remove the min-height once the real image is in place */
-    background-color: transparent;
-    animation: none; /* Stop the pulsing animation */
+    opacity: 1;
+}
+
+/* Style for images that fail to load */
+.image-placeholder.error {
+    animation: none;
+    background-color: #1e1e1e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.9em;
+    color: #888;
+}
+
+/* --- UI Enhancements --- */
+
+/* REMOVED: #initial-loader is no longer needed */
+
+#progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 24px;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+}
+
+#progress-bar {
+    height: 100%;
+    width: 0%; /* Will be updated by JS */
+    background-color: #4a90e2;
+    transition: width 0.2s linear;
+}
+
+#progress-text {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px black;
+}
+
+#go-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgba(74, 144, 226, 0.8);
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+#go-to-top.visible {
+    opacity: 1;
+    visibility: visible;
 }
