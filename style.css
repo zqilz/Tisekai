@@ -1,0 +1,46 @@
+/* Basic Reset and Dark Theme */
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #121212; /* Dark background for comfortable reading */
+    color: #f0f0f0;
+}
+
+/* The main container for the manhwa pages */
+#reader-container {
+    max-width: 800px; /* A comfortable reading width on desktops */
+    margin: 0 auto;   /* Center the container */
+}
+
+/* Styling for each manhwa image */
+.manhwa-image {
+    display: block;  /* Removes the small gap below images */
+    width: 100%;
+    height: auto;
+    background-color: #2a2a2a; /* Placeholder color */
+    min-height: 500px; /* Give placeholders a default height to prevent a blank page */
+    transition: opacity 0.3s ease-in-out;
+    opacity: 1;
+}
+
+/* When the 'lazy' class is present, it's a placeholder */
+.manhwa-image.lazy {
+    /* You could add a subtle loading animation here if you want */
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    background-color: #2a2a2a;
+  }
+  50% {
+    background-color: #383838;
+  }
+}
+
+/* Style for the image once it's loaded */
+.manhwa-image.loaded {
+    min-height: 0; /* Remove the min-height once the real image is in place */
+    background-color: transparent;
+    animation: none; /* Stop the pulsing animation */
+}
