@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manhwa Reader</title>
+    
+    <!-- NEW: Resource Hints for the Browser -->
+    <link rel="preconnect" href="assets/" crossorigin>
+
+    <!-- Preload the first image so it starts downloading immediately. -->
+    <!-- The browser will pick the best format it supports from the <picture> element later, -->
+    <!-- but we preload the guaranteed format to avoid errors. -->
+
+    <!-- <link rel="preload" as="image" 
+          imagesrcset="assets/manhwa/slice_001.avif 1600w, assets/manhwa/slice_001-800w.avif 800w" 
+          imagesizes="(max-width: 800px) 100vw, 800px" type="image/avif"> -->
+    <link rel="preload" as="image" 
+          imagesrcset="assets/manhwa/slice_001.webp 1600w, assets/manhwa/slice_001-800w.webp 800w" 
+          imagesizes="(max-width: 800px) 100vw, 800px" type="image/webp">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- UI Element: Reading Progress Bar -->
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+        <span id="progress-text"></span>
+    </div>
+
+    <main id="reader-container">
+        <!-- First image is hard-coded for instant loading. -->
+        <!-- The <picture> element will gracefully fall back from AVIF to WebP if the AVIF file is not found -->
+        <div class="image-placeholder" id="page-container-1" style="--aspect-ratio: 0.642;">
+            <picture>
+                <source 
+                    type="image/avif"
+                    srcset="assets/manhwa/slice_001.avif 1600w, assets/manhwa/slice_001-800w.avif 800w">
+                <source 
+                    type="image/webp"
+                    srcset="assets/manhwa/slice_001.webp 1600w, assets/manhwa/slice_001-800w.webp 800w">
+                <img 
+                    class="manhwa-image"
+                    src="assets/manhwa/slice_001-800w.webp" 
+                    alt="Page 1"
+                    sizes="(max-width: 800px) 100vw, 800px"
+                    data-page="1">
+            </picture>
+        </div>
+        <!-- Remaining manhwa images will be dynamically loaded here by JavaScript -->
+    </main>
+    
+    <button id="go-to-top" title="Go to top">▲</button>
+    <script src="script.js" defer></script>
+
+</body>
+</html>
