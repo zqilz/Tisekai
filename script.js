@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     // --- Configuration ---
     const config = {
-        imagePath: '/assets/manhwa/',
+        imagePath: 'assets/manhwa/',
         imagePrefix: 'slice_',
         imageExtension: '.webp',
         totalImages: 75,
@@ -70,4 +70,5 @@ document.addEventListener("DOMContentLoaded", () => {
         // Tell the observer to watch this new placeholder
         observer.observe(img);
     }
+
 });
