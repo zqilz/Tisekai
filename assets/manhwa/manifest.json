@@ -1,4 +1,5 @@
 {
   "totalImages": 67,
-  "firstImageAspectRatio": "0.5625" 
+  "defaultAspectRatio": 0.5625,
+  "lastImageAspectRatio": 0.69686411149
 }

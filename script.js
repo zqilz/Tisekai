@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // An array of any smaller, suffixed widths you have generated (e.g., 'slice_001-800w.webp').
         // This can be an empty array [] if you only have the baseWidth images.
         smallerWidths: [800],
-        preloadCount: 2, 
+        preloadCount: 2,
     };
 
     // --- Element Selection ---
@@ -42,20 +42,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function initializeReader(manifest) {
-        const { totalImages, firstImageAspectRatio } = manifest;
+        // CHANGED: Destructure default and last image aspect ratios from manifest
+        const { totalImages, defaultAspectRatio, lastImageAspectRatio } = manifest;
 
         if (!totalImages || totalImages === 0) {
             readerContainer.innerHTML = `<p style="text-align: center; color: #aaa;">No images found in chapter.</p>`;
             return;
         }
-        
-        // --- CHANGED: More robust width handling ---
-        // Combine all available widths, with the base width being the largest.
+
+        // NEW: Validate that the primary aspect ratio exists in the manifest
+        if (!defaultAspectRatio) {
+            console.error("Manifest is missing 'defaultAspectRatio'.");
+            readerContainer.innerHTML = `<p style="text-align: center; color: #aaa;">Chapter data is corrupted (missing aspect ratio).</p>`;
+            return;
+        }
+
         const allWidths = [config.baseWidth, ...config.smallerWidths].sort((a, b) => b - a);
         const smallestWidth = Math.min(...allWidths);
 
         const firstImagePlaceholder = document.getElementById('page-container-1');
         if (firstImagePlaceholder) {
+            // NEW: Correct the aspect ratio for the first page container,
+            // overriding the inline HTML style. This also handles the edge case
+            // where a chapter might only have one page.
+            const firstPageAspectRatio = (totalImages === 1 && lastImageAspectRatio)
+                ? lastImageAspectRatio
+                : defaultAspectRatio;
+            firstImagePlaceholder.style.setProperty('--aspect-ratio', firstPageAspectRatio);
+
             const firstImage = firstImagePlaceholder.querySelector('.manhwa-image');
             firstImage.decode().then(() => firstImage.classList.add('loaded')).catch(console.error);
         }
@@ -66,14 +80,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const placeholder = document.createElement('div');
             placeholder.className = 'image-placeholder lazy';
             placeholder.id = `page-container-${i}`;
-            placeholder.style.setProperty('--aspect-ratio', firstImageAspectRatio);
+
+            // NEW: Dynamically set aspect ratio based on page number.
+            // Use lastImageAspectRatio if it's the last page and the value exists, otherwise use the default.
+            const aspectRatio = (i === totalImages && lastImageAspectRatio)
+                ? lastImageAspectRatio
+                : defaultAspectRatio;
+            placeholder.style.setProperty('--aspect-ratio', aspectRatio);
+
 
             const picture = document.createElement('picture');
-            
-            // --- CHANGED: More robust <source> and srcset generation ---
+
             config.imageFormats.forEach(format => {
                 const srcsetParts = allWidths.map(width => {
-                    // The base width has no suffix, smaller widths do.
                     const suffix = (width === config.baseWidth) ? '' : `-${width}w`;
                     const url = `${config.imagePath}${config.imagePrefix}${imageNumber}${suffix}.${format}`;
                     return `${url} ${width}w`;
@@ -89,28 +108,25 @@ document.addEventListener("DOMContentLoaded", () => {
             img.alt = `Page ${i}`;
             img.dataset.page = i;
             img.sizes = '(max-width: 800px) 100vw, 800px';
-            
-            // --- CHANGED: A more reliable fallback src ---
-            // It uses the smallest available width of your guaranteed fallback format.
+
             const fallbackSuffix = (smallestWidth === config.baseWidth) ? '' : `-${smallestWidth}w`;
             img.dataset.src = `${config.imagePath}${config.imagePrefix}${imageNumber}${fallbackSuffix}.${config.fallbackFormat}`;
 
             picture.appendChild(img);
             placeholder.appendChild(picture);
             readerContainer.appendChild(placeholder);
-            
+
             if (i <= config.preloadCount + 1) {
                 loadImage(placeholder);
             } else {
                 observer.observe(placeholder);
             }
         }
-        
+
         handleScroll(totalImages);
         window.addEventListener('scroll', throttle(() => handleScroll(totalImages), 100));
     }
-    
-    // --- loadImage and observer are unchanged ---
+
     const loadImage = (placeholder) => {
         const sources = placeholder.querySelectorAll('source');
         const imgElement = placeholder.querySelector('img');
@@ -144,7 +160,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }, { rootMargin: '200%' }
     );
 
-    // --- UI Event Handlers (Unchanged) ---
     const throttle = (func, limit) => {
         let inThrottle;
         return function() {
@@ -157,23 +172,19 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     };
-    
-    // --- FIX: Corrected scroll handling logic ---
+
     const handleScroll = (totalImages) => {
         if (totalImages === 0) return;
         const pagePlaceholders = document.querySelectorAll('.image-placeholder');
         const viewportHeight = window.innerHeight;
         let currentPage = 1;
 
-        // Iterate backwards from the last image to the first.
         for (let i = pagePlaceholders.length - 1; i >= 0; i--) {
             const rect = pagePlaceholders[i].getBoundingClientRect();
-            
-            // Find the last image that has its top edge past the vertical
-            // middle of the screen. This is our current page.
+
             if (rect.top < viewportHeight * 0.5) {
                 currentPage = i + 1;
-                break; // Found it, no need to check earlier pages.
+                break;
             }
         }
 
@@ -187,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
             goToTopBtn.classList.remove('visible');
         }
     };
-    
+
     goToTopBtn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
